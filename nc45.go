@@ -4,11 +4,6 @@ package main
  给定一棵二叉树，分别按照二叉树先序，中序和后序打印所有的节点
 */
 
-type TreeNode struct {
-	Val         int
-	Left, Right *TreeNode
-}
-
 func threeOrders(root *TreeNode) [][]int {
 	res := [][]int{}
 	res = append(res, PreOrderTraversal2(root), InOrderTraversal2(root), PostOrderTraversal2(root))
