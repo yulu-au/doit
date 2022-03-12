@@ -14,17 +14,18 @@ func maxLength(arr []int) int {
 	set := make(map[int]int)
 	ret := 0
 
-	i, cnt := 0, 0
+	i, j, cnt := 0, 0, 0
 
 	for i < len(arr) {
 		val := arr[i]
-		if _, exist := set[val]; exist {
+		if index, exist := set[val]; exist {
+			j = max(j, index+1) //index+1 may be number smaller than j
 			delete(set, val)
 			set[val] = i
-			cnt = len(set)
+			cnt = i - j + 1
 		} else {
 			set[val] = i
-			cnt = len(set)
+			cnt = i - j + 1
 		}
 		i++
 		ret = max(ret, cnt)
@@ -32,3 +33,24 @@ func maxLength(arr []int) int {
 
 	return ret
 }
+
+/*
+
+func maxLength( arr []int ) int {
+  // write code here
+  if len(arr)==0 {
+      return 0
+  }
+  max,start:=0,0
+  h:=map[int]int{}
+  for end:=0;end<len(arr);end++{
+      if h[arr[end]]!=0 {
+         start=Max(start,h[arr[end]]+1) //历史最大值，因为可能新的重复索引要小于start，更新成重复的索引下一个
+      }
+       h[arr[end]]=end
+       max=Max(max,end-start+1)
+  }
+  return max
+}
+
+*/
