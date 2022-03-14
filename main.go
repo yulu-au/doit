@@ -1,5 +1,7 @@
 package main
 
 func main() {
-	maxLength([]int{3, 3, 2, 1, 3, 3, 3, 1})
+	a := make([]int, 0, 6)
+	a = append(a, 4, 5, 6, 0, 0, 0)
+	merge(a, 3, []int{1, 2, 3}, 3)
 }
