@@ -7,6 +7,7 @@ package main
 数据范围：0≤arr.length≤1050\le arr.length \le 10^50≤arr.length≤105，0<arr[i]≤1050 < arr[i] \le 10^50<arr[i]≤105
 */
 
+//滑动窗口,使用map的key做唯一性约束,val存数组索引位置
 func maxLength(arr []int) int {
 	if len(arr) == 0 {
 		return 0
@@ -19,6 +20,7 @@ func maxLength(arr []int) int {
 	for i < len(arr) {
 		val := arr[i]
 		if index, exist := set[val]; exist {
+			//注意这里
 			j = max(j, index+1) //index+1 may be number smaller than j
 			delete(set, val)
 			set[val] = i

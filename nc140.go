@@ -17,6 +17,7 @@ func quickSort(left, right int, arr []int) {
 
 func partition(left, right int, arr []int) int {
 	code := arr[left]
+	//一拖二 并且条件具有相似性
 	for left < right {
 		for arr[right] > code && left < right {
 			right--

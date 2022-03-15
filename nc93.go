@@ -73,6 +73,8 @@ type lruVal struct {
 	val int
 }
 
+//get set O(1)复杂度 靠的是map结构
+//list+cap用来限制缓存的大小,丢弃策略
 type cache struct {
 	M    map[int]lruVal
 	List list.List
