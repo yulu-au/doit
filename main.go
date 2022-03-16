@@ -1,7 +1,15 @@
 package main
 
 func main() {
-	a := make([]int, 0, 6)
-	a = append(a, 4, 5, 6, 0, 0, 0)
-	merge(a, 3, []int{1, 2, 3}, 3)
+	a, b, c, d, e := ListNode{1, nil},
+		ListNode{2, nil},
+		ListNode{3, nil},
+		ListNode{4, nil},
+		ListNode{5, nil}
+	a.Next = &b
+	b.Next = &c
+	c.Next = &d
+	d.Next = &e
+
+	reverseKGroup(&a, 2)
 }

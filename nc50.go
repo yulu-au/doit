@@ -13,34 +13,56 @@ package main
 对于 k=3k = 3k=3 , 你应该返回 3→2→1→4→53\to2 \to1 \to 4\to 53→2→1→4→5
 */
 
+/*
+写这道题的时候遇到了很多边界的问题,体会是函数是复杂度的封装,如果你认为现在写起来很乱,
+那么很明显,应当抽象出一个函数来向下转移复杂度了
+*/
 func reverseKGroup(head *ListNode, k int) *ListNode {
 	if head == nil {
 		return nil
 	}
-	var subHead, rst *ListNode
-	etyp := &ListNode{}
-	cur := etyp.Next
-	cnt := k
+
+	var rst *ListNode
+	empty := &ListNode{}
+	cur := empty
+
+	//没有剩余链表就停止
 	for head != nil {
-		if cnt == k {
-			subHead = head
-		}
+		lReverse, lRemain := spiltAndReverse(head, k)
+		cur.Next = lReverse
+		cur = head
+		head = lRemain
+	}
+
+	rst = empty.Next
+	return rst
+}
+
+//分割并反转一部分链表,并且返回剩下的部分链表
+func spiltAndReverse(l *ListNode, k int) (*ListNode, *ListNode) {
+	cnt := k
+	//反转的链表和剩余的
+	var lReverse, lRemain *ListNode
+	head := l
+	for ; l != nil; l = l.Next {
 		cnt--
-		head = head.Next
 		if cnt == 0 {
-			nt := head.Next
-			head.Next = nil
-
-			cur.Next = ReverseList(subHead)
-			cur = subHead
-			cnt = k
-
-			head = nt
+			if l.Next == nil {
+				lRemain = nil
+			} else {
+				lRemain = l.Next
+				//为翻转做准备,链表分成两部分
+				l.Next = nil
+			}
+			lReverse = ReverseList(head)
+			break
 		}
 	}
-	cur.Next = subHead
+	//链表节点数目不足以翻转
+	if cnt != 0 {
+		lRemain = nil
+		lReverse = head
+	}
 
-	rst = etyp.Next
-	etyp.Next = nil
-	return rst
+	return lReverse, lRemain
 }
