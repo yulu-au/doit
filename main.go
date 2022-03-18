@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 func main() {
-	code := compare("01.2.3", "1.2.004")
+	code := solve("1", "99")
 	fmt.Println(code)
 }
 
