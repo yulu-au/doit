@@ -1,10 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"doit/bug"
+)
 
 func main() {
-	code := solve("1", "99")
-	fmt.Println(code)
+	bug.Bug01()
 }
 
 // import "fmt"
