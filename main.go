@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	bug.Bug01()
+	bug.PrintDCF()
 }
 
 // import "fmt"
