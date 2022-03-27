@@ -16,7 +16,7 @@ func hasCycle(head *ListNode) bool {
 		if b != nil {
 			b = b.Next
 		}
-
+		//如果是无环链表,这里a可能已经到链表结尾
 		if a == b && a != nil {
 			return true
 		}

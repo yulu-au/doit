@@ -8,10 +8,10 @@ package main
 定义dp[i]表示前i个元素的连续子数组的最大和
 
 
-dp[i] = max(dp[i-1]+array[i],array[i])
+1 dp[i] = max(dp[i-1]+array[i],array[i])
 */
 
-//注意:所有子数组和的最大值是max(dp[1],dp[2],dp[3],dp[4].......dp[n])
+//2 注意:所有子数组和的最大值是max(dp[1],dp[2],dp[3],dp[4].......dp[n])
 
 func FindGreatestSumOfSubArray(array []int) int {
 	// write code here

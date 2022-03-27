@@ -57,16 +57,16 @@ func solve(s string, t string) string {
 	}
 
 	//匿名函数翻转字节数组
-	fc := func(s []byte) {
+	func(s []byte) {
 		l, r := 0, len(s)-1
 		for l < r {
 			s[l], s[r] = s[r], s[l]
 			l++
 			r--
 		}
-	}
+	}(res)
 
-	fc(res)
+	// fc(res)
 
 	return string(res)
 }

@@ -20,7 +20,7 @@ func maxLength(arr []int) int {
 	for i < len(arr) {
 		val := arr[i]
 		if index, exist := set[val]; exist {
-			//注意这里
+			//注意这里,唯一更新左区间下标
 			j = max(j, index+1) //index+1 may be number smaller than j
 			delete(set, val)
 			set[val] = i
