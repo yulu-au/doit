@@ -11,4 +11,64 @@ package main
 
 func lowestCommonAncestor(root *TreeNode, o1 int, o2 int) int {
 	// write code here
+	queue := make([]*TreeNode, 0)
+	queue = append(queue, root)
+	//存储子节点到父节点的映射
+	M := make(map[int]int, 0)
+	r1, r2 := make([]int, 0), make([]int, 0)
+	x, y := o1, o2
+
+	//层序遍历
+	M[root.Val] = -1
+	for len(queue) != 0 {
+		cur := queue[0]
+		queue = queue[1:]
+
+		if cur.Left != nil {
+			//记录映射
+			M[cur.Left.Val] = cur.Val
+			queue = append(queue, cur.Left)
+		}
+		if cur.Right != nil {
+			M[cur.Right.Val] = cur.Val
+			queue = append(queue, cur.Right)
+		}
+	}
+	//子节点到根节点的路径
+	r1 = append(r1, x)
+	for {
+		if v := M[x]; v == -1 {
+			break
+		} else {
+			r1 = append(r1, v)
+			x = v
+		}
+
+	}
+	//路径
+	r2 = append(r2, y)
+	for {
+		if v := M[y]; v == -1 {
+			break
+		} else {
+			r2 = append(r2, v)
+			y = v
+		}
+	}
+	//从后向前寻找第一个不一样的节点,它前面就是所求
+	index1, index2 := len(r1)-1, len(r2)-1
+	for index1 >= 0 && index2 >= 0 {
+		if r1[index1] != r2[index2] {
+			return r1[index1+1]
+		}
+		index1--
+		index2--
+	}
+	//逻辑到这里必然是有一个切片遍历完了,两个切片是包含与被包含的关系
+	//r1走完全程
+	if index1 == -1 {
+		return r1[0]
+	}
+	//或者r2走完全程
+	return r2[0]
 }
