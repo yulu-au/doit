@@ -1,11 +1,7 @@
 package main
 
-import (
-	"doit/bug"
-)
-
 func main() {
-	bug.PrintDCF()
+	sqrt(3)
 }
 
 // import "fmt"
