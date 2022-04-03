@@ -83,6 +83,5 @@ func main() {
 	go scanAllKeys()
 	// go addKeys()
 	go delKeys()
-
 	time.Sleep(100 * time.Second)
 }
