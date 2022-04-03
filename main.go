@@ -1,7 +1,6 @@
 package main
 
 func main() {
-	sqrt(3)
 }
 
 // import "fmt"
