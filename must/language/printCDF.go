@@ -23,55 +23,6 @@ def echo(threadNum, Upstream, Downstream):
 
 */
 
-// 	"fmt"
-
-// func PrintCat(fishCH, catCH chan bool) {
-// 	defer waitgroup.Done()
-// 	defer close(catCH)
-// 	for i := 0; i < 100; i++ {
-// 		<-fishCH
-// 		fmt.Println("cat ...")
-// 		catCH <- true
-// 	}
-// }
-
-// func PrintDog(catCH, dogCH chan bool) {
-// 	defer waitgroup.Done()
-// 	defer close(dogCH)
-// 	for i := 0; i < 100; i++ {
-// 		<-catCH
-// 		fmt.Println("dog ...")
-// 		dogCH <- true
-// 	}
-// }
-
-// func PrintFish(dogCH, fishCH chan bool) {
-// 	defer waitgroup.Done()
-// 	defer close(fishCH)
-// 	for i := 0; i < 100; i++ {
-// 		<-dogCH
-// 		fmt.Println("fish ...")
-// 		fishCH <- true
-// 	}
-// }
-
-// var waitgroup sync.WaitGroup
-
-// func Bug02() {
-
-// 	catCH := make(chan bool, 1)
-// 	dogCH := make(chan bool, 1)
-// 	fishCH := make(chan bool, 1)
-// 	fishCH <- true
-
-// 	go PrintFish(dogCH, fishCH)
-// 	go PrintDog(catCH, dogCH)
-// 	go PrintCat(fishCH, catCH)
-
-// 	waitgroup.Add(3)
-// 	waitgroup.Wait()
-
-// }
 func printDCF() {
 	var wg sync.WaitGroup
 	d, c, f := make(chan bool, 1), make(chan bool, 1), make(chan bool, 1)
@@ -94,3 +45,45 @@ func printThing(what string, a, b chan bool, wg *sync.WaitGroup) {
 		b <- true
 	}
 }
+
+// var (
+// 	N = 5
+// 	M = 5
+// )
+
+// func gen(v string, times int) <-chan string {
+// 	ch := make(chan string)
+// 	go func() {
+// 		defer close(ch)
+// 		for i := 0; i < times; i++ {
+// 			ch <- v
+// 		}
+// 	}()
+// 	return ch
+// }
+
+// func fanInCDF(times int, inputs []<-chan string) <-chan string {
+// 	ch := make(chan string)
+// 	go func() {
+// 		defer close(ch)
+// 		for i := 0; i < times; i++ {
+// 			for _, input := range inputs {
+// 				v := <-input
+// 				ch <- v
+// 			}
+// 		}
+// 	}()
+// 	return ch
+// }
+
+// func main() {
+// 	times := M
+// 	inputs := make([]<-chan string, 0, N)
+// 	for i := 0; i < N; i++ {
+// 		threadName := string('A' + i)
+// 		inputs = append(inputs, gen(threadName, times))
+// 	}
+// 	for char := range fanInCDF(times, inputs) {
+// 		fmt.Println(char)
+// 	}
+// }
