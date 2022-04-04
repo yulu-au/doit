@@ -1,11 +1,27 @@
-package must
+/*
+https://www.v2ex.com/t/555049#reply0
+同步 做事的先后顺序
+互斥 多线程访问资源的冲突
+*/
+package language
 
 import (
 	"fmt"
 	"sync"
 )
 
-//交替打印 cat dog fish
+/*
+交替打印 cat dog fish
+
+伪代码
+
+def echo(threadNum, Upstream, Downstream):
+  for i in range(M):
+    wait Upstream  // 等待上游的信号
+    print(threadNum)
+    signal Downstream // 给下游发送信号
+
+*/
 
 // 	"fmt"
 
@@ -56,7 +72,7 @@ import (
 // 	waitgroup.Wait()
 
 // }
-func PrintDCF() {
+func printDCF() {
 	var wg sync.WaitGroup
 	d, c, f := make(chan bool, 1), make(chan bool, 1), make(chan bool, 1)
 
@@ -72,7 +88,7 @@ func PrintDCF() {
 func printThing(what string, a, b chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		<-a
 		fmt.Println(what)
 		b <- true
