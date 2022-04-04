@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -17,6 +18,7 @@ var (
 		else
     	return 0
 		end`
+	race int //race代表某个不在这个进程内的资源,需要加分布式锁访问
 )
 
 type redisLock struct {
@@ -71,34 +73,47 @@ func randstr() string {
 	return string(res)
 }
 
-func pushOrder(order, val string, wg *sync.WaitGroup) {
+func doRace(wg *sync.WaitGroup, task string) {
 	defer wg.Done()
-	str := randstr()
-	ok, err := conn.SetNX("lockorder", str, time.Second*100).Result()
-	if !ok {
-		fmt.Println("already do order1")
-		return
-	}
 
-	err = conn.LPush(order, val).Err()
-	if err != nil {
-		panic(err)
+	for {
+		//初始化分布式锁 redislock
+		rl := redisLock{
+			ctx:    context.Background(),
+			conn:   conn,
+			key:    "placeholder",
+			value:  randstr(),
+			expire: time.Second * 100,
+		}
+		ok, err := rl.acquire()
+		if err != nil {
+			log.Println(err)
+		}
+		if !ok {
+			continue
+		}
+
+		defer rl.release()
+
+		//这里开始
+		race++
+		return
 	}
 }
 
-func lockByRedis() {
-	sliOrder := []string{"order1", "order1", "order1"}
+func lockByRedis(n int) {
 	var wg sync.WaitGroup
-	wg.Add(3)
-	//三个goroutine模拟三个节点想要插入订单列表
-	//理想情况应该只有一个插入才行
-	for i, v := range sliOrder {
-		go pushOrder(v, fmt.Sprintf("order1_detail_%v", i), &wg)
+	wg.Add(n)
+	//三个goroutine同时修改race这个key
+	for i := 0; i < n; i++ {
+		go doRace(&wg, "task")
 	}
 	wg.Wait()
 }
 
 func main() {
 	conn.FlushAll()
-	lockByRedis()
+	//修改被争用的资源 race
+	lockByRedis(1000)
+	fmt.Printf("race : %v\n", race)
 }
