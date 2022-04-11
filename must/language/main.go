@@ -1,4 +1,0 @@
-package language
-
-// func main() {
-// }
