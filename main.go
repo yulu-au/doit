@@ -1,11 +1,15 @@
 package main
 
 import (
-	"doit/must/language"
-	"time"
+	"doit/must/doredis"
+	"fmt"
 )
 
 func main() {
-	language.Timeout02()
-	time.Sleep(time.Second * 10)
+	sliK := doredis.PrintAllKeysFromCluster()
+	// fmt.Println(sliK)
+	for _, v := range sliK {
+		r, _ := doredis.GetKey(v)
+		fmt.Printf("get : %v\n", r)
+	}
 }
