@@ -21,6 +21,7 @@ func newRedisConn() *redis.ClusterClient {
 	// 	Password: "", // no password set
 	// 	DB:       0,  // use default DB
 	// })
+	//这里至填写了master的位置,因为redis-cluster中slave节点默认不提供读写服务
 	rdb := redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs: []string{"127.0.0.1:6000", "127.0.0.1:6001", "127.0.0.1:6002"},
 	})
@@ -121,3 +122,12 @@ func delKeys() {
 // 	go delKeys()
 // 	time.Sleep(100 * time.Second)
 // }
+
+func addZset(key string, member []*redis.Z) error {
+	_, err := ConnCluster.ZAdd(context.Background(), key, member...).Result()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
