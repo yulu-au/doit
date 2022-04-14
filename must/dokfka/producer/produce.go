@@ -28,7 +28,8 @@ func produce(key string) {
 		Addr:  kafka.TCP("localhost:9092"),
 		Topic: "test",
 		//生产端的负载均衡策略
-		Balancer: &kafka.Hash{},
+		Balancer:     &kafka.Hash{},
+		RequiredAcks: -1,
 	}
 
 	for i := 0; i < 10; i++ {

@@ -33,6 +33,7 @@ func ReadFromKafka(id int) {
 	})
 	ctx := context.Background()
 	for {
+		r.ReadMessage()
 		m, err := r.FetchMessage(ctx)
 		if err != nil {
 			break

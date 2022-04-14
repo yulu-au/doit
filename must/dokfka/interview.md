@@ -152,3 +152,22 @@ Message4
 
 ```
 假设分区的副本为3，其中副本0是 Leader，副本1和副本2是 follower，并且在 ISR 列表里面。虽然副本0已经写入了 Message4，但是 Consumer 只能读取到 Message2。因为所有的 ISR 都同步了 Message2，只有 High Water Mark 以上的消息才支持 Consumer 读取，而 High Water Mark 取决于 ISR 列表里面偏移量最小的分区，对应于上图的副本2，这个很类似于木桶原理
+
+# 不重复消费
+重复消费的可能场景:消费者消费一条消息还没等到commit offset就挂了,然后消费者重启再次消费
+业务有幂等性,这样的话重复消费消息也不会有问题
+# kafka消息有序性
+分区内有序
+```
+一个topic只给一个分区
+生产者生产消息放到分区的策略选择hash+消息带key
+```
+
+# 坑
+## kafka-go
+```
+https://cloud.tencent.com/developer/article/1809467
+消息丢失
+func (r *Reader) ReadMessage(ctx context.Context) (Message, error)
+假失败
+```
