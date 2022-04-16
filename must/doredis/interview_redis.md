@@ -105,7 +105,27 @@ appendonly yes
 ```
 # redis数据类型的底层实现
 ```
+参考 https://github.com/zpoint/Redis-Internals/blob/5.0/README_CN.md
 
+编码方式多样的原因是节省内存
+
+string
+底层有三种编码方式int或者embstr或者raw,就是说能转换为long类型的就使用int编码,除此以外占用字节数量少(44byte)的就使用embstr；此外使用sds编码方式的还有小类的SDS_TYPE_5,SDS_TYPE_8,SDS_TYPE_16,SDS_TYPE_32,SDS_TYPE_64
+
+
+
+hash
+底层数据结构是ziplist或者hashtable
+
+list
+底层实现是quicklist=ziplist+linkedlist
+
+set
+底层实现是intset或者hashtable；如果集合元素都是数值类型,并且元素数量少(512),使用intset
+
+zset
+底层实现是哈希表+ziplist或者skiplist；如果元素小且少使用ziplist
+哈希表存score->member
 ```
 # redis数据类型的使用场景
 ```
@@ -154,10 +174,24 @@ redis的线上事故，原因是有个脚本删除了一个 redis 的大 key ，
 4.0+ unlink 也可以，但是 unlink redis 线程之间通知之类的会多消耗一点，业务量大对 redis 的请求很频繁，用业务服务分批删、能替 redis 节省点性能可能对整个集群更划算，根据你们实际业务来判断
 ```
 
-# 场景体
+# 场景题
 ## zset怎么保证固定大小
 ```
 zcard {key}
 ZREMRANGEBYRANK {key} {start} {end} start end可以使用 -1 -2 指代倒数第几个元素
 zadd {key} {score1} {member1} ...
 ```
+## redis穿透问题
+```
+有一个表保存了点对点的关系。但是线上大多数点和点之间是没有关系的。所以 90%会打到数据库（如果 redis 不做缓存穿透的处理).
+为了做缓存穿透的处理，在数据库查到为空时，在 redis 放了一个 key 等于参数，value 为空的值。但是，这部分值太多了。
+解释一下大概就是人和人的点对点关系。可以理解为微博的好友添加,数据库里存了好友数据，业务发来两个用户查询两个人是否好友，大概率不是好友.
+
+解决方案参考
+1 redis 接入 mysql binlog 或 canal，让 redis 做全量 mysql 数据的同步
+2 布隆过滤器定时重建
+
+```
+# 面试题参考来源
+https://easyhappy.github.io/travel-coding/mysql/%E5%89%8D%E8%A8%80.html
+https://manbucoding.com/travel-coding/redis/%E5%89%8D%E8%A8%80.html
