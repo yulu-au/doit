@@ -1,0 +1,163 @@
+# redis-cluster与哨兵区别
+```
+哨兵解决的是高可用的问题,哨兵模式=主redis+从redis+哨兵防止redis挂
+cluster解决高可用+水平扩展,三主三从+gossip协议
+
+哨兵的缺点:不支持水平扩展,主redis只有一个,受限于内存,qps最多8w+
+cluster的缺点:引入槽位的概念,keys */scan这种动作比较麻烦,原子操作也比较麻烦
+```
+# redis-cluster怎么获取所有的key
+```
+"keys *"在线上肯定是不行的,会引起明显的阻塞
+cluster模式下,从节点默认是不提供读写服务的,可以自定义参考readonly命令
+使用scan去遍历key,并且由于是cluster模式,需要在每个master上scan,然后汇总
+```
+## go-redis
+```
+ForEachMaster函数用来在cluster模式下执行需要对多个master执行的动作,比如获取所有key
+```
+## 从节点不提供读写
+```
+为什么不提供从节点的读,这是分担主库压力的标准动作,从cluster模式看,如果主库hold不住压力,最好的方式是加主redis的数量,也就是水平扩展
+```
+
+# redis持久化
+```
+生产环境方案
+redis-cluster: master关闭持久化,slave打开RDB+AOF
+```
+## 数据恢复
+```
+将rdb文件放到数据文件位置就行
+
+aof恢复,也是一样的
+如果文件损坏 
+redis-check-aof --fix {受损文件}
+redis-check-dump {受损文件} 
+```
+## RDB redis database
+```
+为什么
+复制内存这种方式较aof快,产生的文件较aof小,用来数据恢复较aof快
+
+是什么
+复制内存快照保存到硬盘上
+
+怎么做
+save(阻塞主线程)不推荐；bgsave(后台执行),redis就是这么做的,fork一个子进程去复制内存
+配置文件里这么写
+save 900 1 900秒内有一次动作就bgsave
+save 300 10 同上
+save 60 10000 同上
+
+
+```
+### 快照时发生数据修改怎么办
+写时复制技术（Copy-On-Write, COW）,fork的子进程会共享父进程的内存空间,一旦父进程的内存发生改变,父进程就会将这段内存复制一份出来,子进程就看不到最新的改变
+
+## AOF append only file
+```
+为什么
+数据一致性,rdb方式可能会丢失数据
+
+是什么
+通过保存数据库执行的命令来记录数据库的状态
+
+怎么做
+打开AOF+配置写硬盘策略
+配置文件 
+appendonly yes
+appendfsync everysec
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+
+写入策略取决于appendfsync参数
+always表示每次写都写到硬盘
+everysec 表示每秒刷一次 
+no 表示由os决定
+```
+### aof重写
+```
+aof是记录命令这种日志形式的,所以文件会很大
+
+重写主要是将多变一
+set k1 v1
+set k1 v2 -----> set k1 v3
+set k1 v3
+```
+
+# 搭建redis-cluster
+```
+集群初始化命令
+redis-cli --cluster create 192.168.10.10:6371 192.168.10.10:6372 192.168.10.10:6373 192.168.10.11:6374 192.168.10.11:6375 192.168.10.11:6376 --cluster-replicas 1
+
+配置文件举例
+port 6000
+cluster-enabled yes
+protected-mode no
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+#对外ip
+cluster-announce-ip 192.168.1.102 
+cluster-announce-port 6000
+cluster-announce-bus-port 16000
+appendonly yes
+```
+# redis数据类型的底层实现
+```
+
+```
+# redis数据类型的使用场景
+```
+String(字符串)
+二进制安全
+可以包含任何数据,比如jpg图片或者序列化的对象,一个键最大能存储512M
+---
+
+Hash(字典)
+键值对集合,即编程语言中的Map类型
+适合存储对象,并且可以像数据库中update一个属性一样只修改某一项属性值(Memcached中需要取出整个字符串反序列化成对象修改完再序列化存回去)
+存储、读取、修改用户属性
+
+
+List(列表)
+链表(双向链表)
+增删快,提供了操作某一段元素的API
+1、最新消息排行等功能(比如朋友圈的时间线) 2、消息队列
+
+
+Set(集合)
+哈希表实现,元素不重复
+1、添加、删除、查找的复杂度都是O(1)  2、为集合提供了求交集、并集、差集等操作
+1、共同好友 2、利用唯一性,统计访问网站的所有独立ip 3、好友推荐时,根据tag求交集,大于某个阈值就可以推荐
+
+
+Sorted Set(有序集合)
+将Set中的元素增加一个权重参数score,元素按score有序排列
+数据插入集合时,已经进行天然排序
+1、排行榜 2、带权重的消息队列
+
+```
+
+# 大KEY问题
+```
+redis的线上事故，原因是有个脚本删除了一个 redis 的大 key ，这个 key 是一个 zset 数据结构，里面有 1000w+ 数据，导致 cpu 100%.
+如果一个大 key，del 会导致 cpu 飙升，那么给它一个过期时间，过期的那一刻也是产生同样的效果，等同于 del.
+
+为什么cpu会满
+元素数量多，实现上是 map+skiplist ，因为非数组结构（非连续内存），所以没法像操作单个元素那样删除所有元素，而是需要遍历删除每个节点，元素多，一个 op 整体删除肯定要阻塞其他请求较长时间。
+
+解决方案
+1 分批删除
+比如 zremrangebyrank 一次删除 N 个，多次之间间隔 sleep 下（或者单次 op RTT 本来就有网络往返时间，一般不 sleep 也可以，看你们主业务的需要），因为是要删除的数据，删除慢点应该也无所谓，N 和是否需要 sleep 自己把握就行
+2 unlink异步删除
+4.0+ unlink 也可以，但是 unlink redis 线程之间通知之类的会多消耗一点，业务量大对 redis 的请求很频繁，用业务服务分批删、能替 redis 节省点性能可能对整个集群更划算，根据你们实际业务来判断
+```
+
+# 场景体
+## zset怎么保证固定大小
+```
+zcard {key}
+ZREMRANGEBYRANK {key} {start} {end} start end可以使用 -1 -2 指代倒数第几个元素
+zadd {key} {score1} {member1} ...
+```
