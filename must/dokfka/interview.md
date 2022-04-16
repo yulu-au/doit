@@ -29,26 +29,27 @@ kafka的节点,分为leader节点和follower节点
 
 实践中,消费者组中消费者的数量与对应主题分区的数量是相同的,这样保证每个分区都有一个对应的消费者；如果某topic有三个分区,对应的消费者组有四个消费者,那就会有一个消费者空转
 # kafka为什么性能高
-## 顺序读写
+## 写
+### 顺序写
 kafka将消息记录持久化到本地磁盘,它将message不断追加到文件尾,这样相比随机读写会快；
 所以它不删除message,每个消费者对每个分区持有offset去消费；
-### 日志删除策略
-所以它的硬盘占用会很快满,删除数据的策略一是基于时间,二是基于partition大小,具体见配置文档； 
-log.retention.bytes  log.retention.hours
+### mmap
+通过mmap(内存映射文件),进程读写磁盘可以通过内存,内存的改变会被同步到磁盘(producer.type),这样io就会很快
 
-### 读
+## 读
+### 零拷贝
+基于sendfile,减少了在内核空间和用户空间之间的拷贝
+### 批量压缩
+多个消息一起压缩,一次读大量的数据,节约资源；kafka生产者写入数据不是实时发给消费者,这就是原因
+
 kafka存的message会产生两类文件,索引文件,数据文件是分区+分段,而且不论是索引还是数据都是有序的,这样就给二分查找
 
 ## page cache
 使用os自己的page cache,而不是jvm的堆内存免去gc的烦恼,os对page cache也会有很多优化
-## 零拷贝
-避免了在内核空间和用户空间之间的拷贝
 ## sendfile
 系统调用,允许pagecache直接拷贝数据到socket缓冲区,而不需要经过用户缓冲区的转换
 ## 分区分段
 读某个topic的某个分区的数据,对于一个分区来讲,它保存在不同的broker上,这样io的压力会分散开
-## 批量读写,压缩
-一次读大量的数据,节约资源；kafka生产者写入数据不是实时发给消费者,这就是原因
 
 # 消息队列的两种模型
 # 队列模型
@@ -162,6 +163,9 @@ Message4
 一个topic只给一个分区
 生产者生产消息放到分区的策略选择hash+消息带key
 ```
+# 日志删除策略
+所以它的硬盘占用会很快满,删除数据的策略一是基于时间,二是基于partition大小,具体见配置文档； 
+log.retention.bytes  log.retention.hours
 
 # 坑
 ## kafka-go
@@ -170,4 +174,12 @@ https://cloud.tencent.com/developer/article/1809467
 消息丢失
 func (r *Reader) ReadMessage(ctx context.Context) (Message, error)
 假失败
+```
+# 性能测试
+```
+kafka-producer-perf-test.sh
+kafka-consumer-perf-test.sh
+
+三台物理机 32核 64g 千兆网卡
+每个消息500字节 25个线程 测试topic6分区1副本 三个kafka节点 50w+
 ```
