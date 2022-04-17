@@ -192,6 +192,24 @@ zadd {key} {score1} {member1} ...
 2 布隆过滤器定时重建
 
 ```
+# 缓存DB一致性方案
+```
+1 cache aside方案(并发条件下会有脏数据)
+更新数据库随后删除redis缓存内容
+
+2延时双删(等待时间难以确认；脏数据还是有,因为DB从库比主库慢,读从库还是可能脏数据)
+删除缓存,随后更新数据库,随后等待一小会再次删除缓存
+
+3异步监听binlog删除+重试
+是什么
+抓取mysql的binlog得知更新,对应删除redis里的内容(删除失败走MQ重试)
+优点
+比较完善的方案,很多公司用
+缺点
+会有点慢,因为DB->binlog->分析->删除缓存
+数据库拆分的时候,灰度切读流量的时候会有脏数据
+```
+
 # 面试题参考来源
 https://easyhappy.github.io/travel-coding/mysql/%E5%89%8D%E8%A8%80.html
 https://manbucoding.com/travel-coding/redis/%E5%89%8D%E8%A8%80.html
