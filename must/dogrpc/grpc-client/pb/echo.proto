@@ -1,0 +1,15 @@
+syntax ="proto3";
+
+option go_package="../pb";
+
+service Echo{
+    rpc Echo(Echoreq) returns(Echoresp){}
+}
+
+message Echoreq {
+    string Msg = 1;
+}
+
+message Echoresp {
+    string Msg = 1;
+}
