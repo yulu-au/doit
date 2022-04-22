@@ -49,7 +49,7 @@ func (e *echoBuilder) Build(target resolver.Target,
 type echoResolver struct {
 	client *clientv3.Client
 	target resolver.Target
-	cc     resolver.ClientConn
+	cc     resolver.ClientConn //这里是resolver与conn的桥梁
 	store  map[string]struct{}
 	stopCh chan struct{}
 	// rn channel is used by ResolveNow() to force an immediate resolution of the target.
