@@ -65,5 +65,10 @@ OBJECT_INSTANCE_BEGIN: 140078210955048
 
 
 ```
+# binlog恢复
+```
+使用binlog恢复可能会碰到无法导入数据的情况,这是gtid的原因
+--skip-gtids=true
+```
 
 https://v2ex.com/t/825520
